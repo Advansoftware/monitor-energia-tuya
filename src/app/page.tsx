@@ -192,9 +192,6 @@ export default function Home() {
         {/* Bottom Navigation */}
         <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
         
-        {/* Bottom Navigation */}
-        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-        
         {/* PWA Install Prompt */}
         <PWAInstallPrompt />
       </div>

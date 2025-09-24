@@ -12,7 +12,7 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ devices, settings }: MobileHeaderProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border">
       {/* Safe area padding for devices with notch */}
       <div className="pt-safe">
         <div className="flex items-center justify-between px-4 py-3">

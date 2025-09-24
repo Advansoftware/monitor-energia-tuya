@@ -70,9 +70,10 @@ function NotificationItem({ notification, onRead, onDelete, onSwipe }: Notificat
       }}
       exit={{ 
         opacity: 0, 
-        scale: 0.95,
-        y: -20,
-        transition: { duration: 0.2 }
+        scale: 0.8,
+        y: -30,
+        x: swipeDirection === 'left' ? -400 : swipeDirection === 'right' ? 400 : 0,
+        transition: { duration: 0.3, ease: "easeInOut" }
       }}
       transition={{ 
         type: "spring", 
@@ -122,7 +123,7 @@ function NotificationItem({ notification, onRead, onDelete, onSwipe }: Notificat
         </div>
 
         {/* Notification Content */}
-        <div className="relative z-10 bg-dark-800 rounded-lg p-4">
+        <div className="relative z-10 bg-slate-800/80 backdrop-blur-sm rounded-lg p-4 border border-slate-700/30">
           <div className="flex items-start space-x-3">
             <motion.div
               className={`p-2 rounded-lg bg-dark-700 ${getIconColor()}`}
@@ -136,7 +137,7 @@ function NotificationItem({ notification, onRead, onDelete, onSwipe }: Notificat
               <div className="flex items-start justify-between">
                 <div>
                   <motion.h4 
-                    className="font-medium text-dark-50"
+                    className="font-medium text-white"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}
@@ -144,7 +145,7 @@ function NotificationItem({ notification, onRead, onDelete, onSwipe }: Notificat
                     {notification.title}
                   </motion.h4>
                   <motion.p 
-                    className="text-sm text-dark-300 mt-1"
+                    className="text-sm text-slate-200 mt-1"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.15 }}
@@ -152,7 +153,7 @@ function NotificationItem({ notification, onRead, onDelete, onSwipe }: Notificat
                     {notification.message}
                   </motion.p>
                   <motion.p 
-                    className="text-xs text-dark-400 mt-2"
+                    className="text-xs text-slate-400 mt-2"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
@@ -327,14 +328,13 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
       });
 
       if (response.ok) {
-        setTimeout(() => {
-          setNotifications(prev => prev.filter(n => n.id !== id));
-          setDeletingIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(id);
-            return newSet;
-          });
-        }, 300);
+        // Remove imediatamente para animação fluida
+        setNotifications(prev => prev.filter(n => n.id !== id));
+        setDeletingIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
       }
     } catch (error) {
       console.error('Erro ao excluir notificação:', error);
@@ -355,18 +355,48 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
   };
 
   const markAllAsRead = async () => {
-    const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+    const unreadNotifications = notifications.filter(n => !n.read);
     
-    for (const id of unreadIds) {
-      await markAsRead(id);
+    if (unreadNotifications.length === 0) return;
+    
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'markAllAsRead',
+          ids: unreadNotifications.map(n => n.id)
+        }),
+      });
+
+      if (response.ok) {
+        setNotifications(prev => 
+          prev.map(n => ({ ...n, read: true }))
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao marcar todas como lidas:', error);
     }
   };
 
   const clearAll = async () => {
-    const allIds = notifications.map(n => n.id);
+    if (notifications.length === 0) return;
     
-    for (const id of allIds) {
-      await deleteNotification(id);
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'clearAll',
+          ids: notifications.map(n => n.id)
+        }),
+      });
+
+      if (response.ok) {
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error('Erro ao limpar todas as notificações:', error);
     }
   };
 
@@ -401,9 +431,9 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
       <AnimatePresence>
         {showPanel && (
           <>
-            {/* Backdrop */}
+            {/* Invisible backdrop for closing */}
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              className="fixed inset-0 z-30"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -412,23 +442,23 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
 
             {/* Panel */}
             <motion.div
-              className="absolute right-0 top-12 w-80 max-w-[90vw] max-h-[70vh] bg-dark-800 border border-dark-600 rounded-xl shadow-2xl z-50 overflow-hidden"
+              className="absolute right-0 top-12 w-80 max-w-[90vw] max-h-[70vh] bg-slate-900/70 backdrop-blur-xl border border-slate-700/30 rounded-xl shadow-2xl z-40 overflow-hidden"
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {/* Header */}
-              <div className="p-4 border-b border-dark-600">
+              <div className="p-4 border-b border-slate-600/50 bg-slate-800/50">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-dark-50">Notificações</h3>
+                  <h3 className="font-semibold text-white">Notificações</h3>
                   <motion.button
                     onClick={() => setShowPanel(false)}
-                    className="p-1 hover:bg-dark-700 rounded-lg transition-colors"
+                    className="p-1 hover:bg-slate-700/50 rounded-lg transition-colors"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="h-4 w-4 text-dark-400" />
+                    <X className="h-4 w-4 text-slate-400" />
                   </motion.button>
                 </div>
                 
@@ -467,7 +497,11 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
                       <p>Nenhuma notificação</p>
                     </motion.div>
                   ) : (
-                    <div className="space-y-2">
+                    <motion.div 
+                      className="space-y-2"
+                      layout
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    >
                       {notifications.map((notification) => (
                         <NotificationItem
                           key={notification.id}
@@ -477,7 +511,7 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
                           onSwipe={handleSwipe}
                         />
                       ))}
-                    </div>
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
