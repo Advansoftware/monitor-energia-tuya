@@ -1,103 +1,260 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Activity, Zap, TrendingUp, Settings, BarChart3, Cog, History as HistoryIcon } from 'lucide-react';
+import DeviceCard from '@/components/DeviceCard';
+import EnergyChart from '@/components/EnergyChart';
+import StatsCard from '@/components/StatsCard';
+import Analytics from '@/components/Analytics';
+import DeviceManager from '@/components/DeviceManager';
+import History from '@/components/History';
+import { ModalProvider } from '@/components/ModalProvider';
+
+interface Device {
+  deviceId: string;
+  name: string;
+  category: string;
+  online: boolean;
+  power: number;
+  voltage: number;
+  current: number;
+  totalEnergy: number;
+  lastUpdate: Date;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPower, setTotalPower] = useState(0);
+  const [totalEnergy, setTotalEnergy] = useState(0);
+  const [onlineCount, setOnlineCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    fetchDevices();
+    const interval = setInterval(fetchDevices, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const stats = devices.reduce(
+      (acc, device) => ({
+        totalPower: acc.totalPower + device.power,
+        totalEnergy: acc.totalEnergy + device.totalEnergy,
+        onlineCount: acc.onlineCount + (device.online ? 1 : 0),
+      }),
+      { totalPower: 0, totalEnergy: 0, onlineCount: 0 }
+    );
+    
+    setTotalPower(stats.totalPower);
+    setTotalEnergy(stats.totalEnergy);
+    setOnlineCount(stats.onlineCount);
+  }, [devices]);
+
+  const fetchDevices = async () => {
+    try {
+      const response = await fetch('/api/devices');
+      const data = await response.json();
+      
+      if (data.success) {
+        setDevices(data.devices);
+        setError(null);
+      } else {
+        setError(data.error || 'Erro ao carregar dispositivos');
+      }
+    } catch (err) {
+      setError('Erro de conexão');
+      console.error('Erro ao buscar dispositivos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          <span className="text-dark-100">Carregando dispositivos...</span>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <ModalProvider>
+      <div className="min-h-screen bg-dark-900 text-dark-50">
+      <header className="bg-dark-800 border-b border-dark-700 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-primary-600 p-2 rounded-lg">
+              <Activity className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-dark-50">Monitor de Energia</h1>
+              <p className="text-sm text-dark-400">
+                {devices.length} dispositivos • {onlineCount} online
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => setActiveTab('dashboard')}
+              className={`p-2 rounded-lg transition-colors ${
+                activeTab === 'dashboard' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              }`}
+              title="Dashboard"
+            >
+              <Activity className="h-5 w-5" />
+            </button>
+            <button 
+              onClick={() => setActiveTab('analytics')}
+              className={`p-2 rounded-lg transition-colors ${
+                activeTab === 'analytics' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              }`}
+              title="Analytics"
+            >
+              <BarChart3 className="h-5 w-5" />
+            </button>
+            <button 
+              onClick={() => setActiveTab('devices')}
+              className={`p-2 rounded-lg transition-colors ${
+                activeTab === 'devices' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              }`}
+              title="Gerenciar Dispositivos"
+            >
+              <Cog className="h-5 w-5" />
+            </button>
+            <button 
+              onClick={() => setActiveTab('history')}
+              className={`p-2 rounded-lg transition-colors ${
+                activeTab === 'history' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              }`}
+              title="Histórico"
+            >
+              <HistoryIcon className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="p-4 space-y-6">
+        {error && (
+          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+              <span className="text-red-200">{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Navigation Mobile */}
+        <div className="block sm:hidden">
+          <div className="grid grid-cols-4 bg-dark-800 rounded-lg p-1 gap-1">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex flex-col items-center justify-center py-2 rounded transition-colors ${
+                activeTab === 'dashboard' ? 'bg-primary-600 text-white' : 'text-dark-400'
+              }`}
+            >
+              <Activity className="h-4 w-4 mb-1" />
+              <span className="text-xs">Home</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`flex flex-col items-center justify-center py-2 rounded transition-colors ${
+                activeTab === 'analytics' ? 'bg-primary-600 text-white' : 'text-dark-400'
+              }`}
+            >
+              <BarChart3 className="h-4 w-4 mb-1" />
+              <span className="text-xs">Analytics</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('devices')}
+              className={`flex flex-col items-center justify-center py-2 rounded transition-colors ${
+                activeTab === 'devices' ? 'bg-primary-600 text-white' : 'text-dark-400'
+              }`}
+            >
+              <Cog className="h-4 w-4 mb-1" />
+              <span className="text-xs">Dispositivos</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex flex-col items-center justify-center py-2 rounded transition-colors ${
+                activeTab === 'history' ? 'bg-primary-600 text-white' : 'text-dark-400'
+              }`}
+            >
+              <HistoryIcon className="h-4 w-4 mb-1" />
+              <span className="text-xs">Histórico</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Content Based on Active Tab */}
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <StatsCard
+                title="Potência Total"
+                value={`${totalPower.toFixed(1)} W`}
+                icon={Zap}
+                trend={totalPower > 0 ? 'up' : 'neutral'}
+              />
+              <StatsCard
+                title="Energia Total"
+                value={`${totalEnergy.toFixed(2)} kWh`}
+                icon={TrendingUp}
+                trend="up"
+              />
+              <StatsCard
+                title="Dispositivos Online"
+                value={`${onlineCount}/${devices.length}`}
+                icon={Activity}
+                trend={onlineCount === devices.length ? 'up' : 'down'}
+              />
+            </div>
+
+            {devices.length > 0 && (
+              <div className="card">
+                <h2 className="text-lg font-semibold mb-4">Consumo em Tempo Real</h2>
+                <EnergyChart devices={devices} />
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Dispositivos</h2>
+              {devices.length === 0 ? (
+                <div className="card text-center py-8">
+                  <Activity className="h-12 w-12 text-dark-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-dark-300 mb-2">
+                    Nenhum dispositivo encontrado
+                  </h3>
+                  <p className="text-dark-400">
+                    Verifique se seus dispositivos Tuya estão configurados corretamente.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {devices.map((device) => (
+                    <DeviceCard key={device.deviceId} device={device} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'analytics' && <Analytics devices={devices} />}
+
+        {activeTab === 'devices' && (
+          <DeviceManager devices={devices} onDevicesUpdate={fetchDevices} />
+        )}
+
+        {activeTab === 'history' && <History devices={devices} />}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
+    </ModalProvider>
   );
 }
