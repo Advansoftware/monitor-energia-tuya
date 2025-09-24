@@ -6,8 +6,8 @@ class TuyaService {
   constructor() {
     this.context = new TuyaContext({
       baseUrl: process.env.TUYA_ENDPOINT || 'https://openapi.tuyaus.com',
-      accessKey: process.env.TUYA_ACCESS_KEY || '',
-      secretKey: process.env.TUYA_SECRET_KEY || '',
+      accessKey: process.env.TUYA_ACCESS_ID || '',
+      secretKey: process.env.TUYA_ACCESS_SECRET || '',
     });
   }
 
