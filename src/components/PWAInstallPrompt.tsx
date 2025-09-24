@@ -23,17 +23,24 @@ export default function PWAInstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       
-      // Show minimal version initially
-      const dismissed = localStorage.getItem('pwa-prompt-dismissed');
-      if (!dismissed) {
-        setShowPrompt(true);
-      }
+      // Show prompt after a delay to not interfere with page load
+      setTimeout(() => {
+        const dismissed = localStorage.getItem('pwa-prompt-dismissed');
+        const lastShown = localStorage.getItem('pwa-prompt-last-shown');
+        const now = Date.now();
+        
+        // Show again after 3 days if dismissed
+        if (!dismissed || (lastShown && now - parseInt(lastShown) > 3 * 24 * 60 * 60 * 1000)) {
+          setShowPrompt(true);
+        }
+      }, 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        (window.navigator as any).standalone === true) {
       setShowPrompt(false);
     }
 
@@ -56,6 +63,7 @@ export default function PWAInstallPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false);
     localStorage.setItem('pwa-prompt-dismissed', 'true');
+    localStorage.setItem('pwa-prompt-last-shown', Date.now().toString());
   };
 
   if (!showPrompt) return null;
