@@ -10,6 +10,7 @@ import DeviceManager from '@/components/DeviceManager';
 import History from '@/components/History';
 import Settings from '@/components/Settings';
 import NotificationSystem from '@/components/NotificationSystem';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { ModalProvider } from '@/components/ModalProvider';
 
 interface Device {
@@ -89,10 +90,18 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
-        <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-          <span className="text-dark-100">Carregando dispositivos...</span>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="card text-center animate-pulse">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary-400 to-accent-400 opacity-20 animate-pulse"></div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-100 mb-1">Carregando...</h3>
+              <p className="text-slate-400 text-sm">Conectando com dispositivos Tuya</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -100,25 +109,38 @@ export default function Home() {
 
   return (
     <ModalProvider>
-      <div className="min-h-screen bg-dark-900 text-dark-50">
-      <header className="bg-dark-800 border-b border-dark-700 px-4 py-3">
+      <div className="min-h-screen text-slate-50">
+      <header className="glass-dark border-b border-white/10 px-4 py-4 backdrop-blur-xl sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-primary-600 p-2 rounded-lg">
-              <Activity className="h-6 w-6 text-white" />
+            <div className="relative">
+              <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-3 rounded-xl shadow-lg">
+                <Activity className="h-7 w-7 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent-400 rounded-full animate-pulse"></div>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-dark-50">Monitor de Energia</h1>
-              <p className="text-sm text-dark-400">
-                {devices.length} dispositivos • {onlineCount} online
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Monitor de Energia</h1>
+              <p className="text-sm text-slate-400 flex items-center space-x-2">
+                <span className="inline-flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-accent-400 rounded-full animate-pulse"></div>
+                  <span>{devices.length} dispositivos</span>
+                </span>
+                <span>•</span>
+                <span className="inline-flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span>{onlineCount} online</span>
+                </span>
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             <button 
               onClick={() => setActiveTab('dashboard')}
-              className={`p-2 rounded-lg transition-colors ${
-                activeTab === 'dashboard' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              className={`p-3 rounded-xl transition-all duration-300 ${
+                activeTab === 'dashboard' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                  : 'hover:bg-white/10 text-slate-400 hover:text-slate-200'
               }`}
               title="Dashboard"
             >
@@ -126,8 +148,10 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab('analytics')}
-              className={`p-2 rounded-lg transition-colors ${
-                activeTab === 'analytics' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              className={`p-3 rounded-xl transition-all duration-300 ${
+                activeTab === 'analytics' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                  : 'hover:bg-white/10 text-slate-400 hover:text-slate-200'
               }`}
               title="Analytics"
             >
@@ -135,8 +159,10 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab('devices')}
-              className={`p-2 rounded-lg transition-colors ${
-                activeTab === 'devices' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              className={`p-3 rounded-xl transition-all duration-300 ${
+                activeTab === 'devices' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                  : 'hover:bg-white/10 text-slate-400 hover:text-slate-200'
               }`}
               title="Gerenciar Dispositivos"
             >
@@ -144,8 +170,10 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab('history')}
-              className={`p-2 rounded-lg transition-colors ${
-                activeTab === 'history' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              className={`p-3 rounded-xl transition-all duration-300 ${
+                activeTab === 'history' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                  : 'hover:bg-white/10 text-slate-400 hover:text-slate-200'
               }`}
               title="Histórico"
             >
@@ -153,8 +181,10 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`p-2 rounded-lg transition-colors ${
-                activeTab === 'settings' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              className={`p-3 rounded-xl transition-all duration-300 ${
+                activeTab === 'settings' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25' 
+                  : 'hover:bg-white/10 text-slate-400 hover:text-slate-200'
               }`}
               title="Configurações"
             >
@@ -165,12 +195,17 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="p-4 space-y-6">
+      <main className="p-4 space-y-6 animate-fade-in">
         {error && (
-          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-              <span className="text-red-200">{error}</span>
+          <div className="glass-dark border border-red-500/30 rounded-xl p-4 animate-slide-up">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse"></div>
+              </div>
+              <div>
+                <h4 className="text-red-200 font-medium text-sm">Erro de Conexão</h4>
+                <p className="text-red-300/80 text-sm mt-1">{error}</p>
+              </div>
             </div>
           </div>
         )}
@@ -282,6 +317,8 @@ export default function Home() {
 
         {activeTab === 'settings' && <Settings />}
       </main>
+      
+      <PWAInstallPrompt />
     </div>
     </ModalProvider>
   );
