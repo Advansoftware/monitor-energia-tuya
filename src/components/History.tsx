@@ -7,6 +7,8 @@ import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useModal } from './ModalProvider';
 import { Device, EnergyReading, MonthlyStats } from '@/types';
+import { Button } from './ui/Button';
+import PageLayout from './PageLayout';
 
 interface HistoryProps {
   devices: Device[];
@@ -157,31 +159,33 @@ export default function History({ devices }: HistoryProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <h2 className="text-xl font-bold text-dark-50">Histórico e Relatórios</h2>
-        <div className="flex items-center space-x-2">
-          <button
+    <PageLayout
+      title="Histórico e Relatórios"
+      titleIcon={<BarChart2 className="h-6 w-6 text-primary" />}
+      actions={
+        <>
+          <Button
             onClick={collectData}
             disabled={loading}
-            className="btn-secondary flex items-center space-x-2"
+            loading={loading}
+            variant="secondary"
+            className="flex items-center space-x-2"
             title="Coletar dados atuais dos dispositivos"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className="h-4 w-4" />
             <span>Coletar Dados</span>
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={exportData}
-            className="btn-primary flex items-center space-x-2"
+            className="flex items-center space-x-2"
             disabled={historicalData.length === 0}
           >
             <Download className="h-4 w-4" />
             <span>Exportar</span>
-          </button>
-        </div>
-      </div>
-
+          </Button>
+        </>
+      }
+    >
       {/* Filters */}
       <div className="card">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -327,6 +331,6 @@ export default function History({ devices }: HistoryProps) {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

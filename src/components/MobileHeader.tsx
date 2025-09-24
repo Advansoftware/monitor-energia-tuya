@@ -1,7 +1,7 @@
 'use client';
 
 import { Bell } from 'lucide-react';
-import NotificationSystem from './NotificationSystem';
+import NotificationSystem from './NotificationSystemEnhanced';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import { Device, Settings } from '@/types';
 

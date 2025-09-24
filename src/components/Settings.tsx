@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, DollarSign, Target, Bell, Save, RotateCcw } from 'lucide-react';
 import { useModal } from './ModalProvider';
+import { Switch } from './ui/Switch';
+import { Button } from './ui/Button';
+import PageLayout from './PageLayout';
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -103,33 +106,33 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <SettingsIcon className="h-6 w-6 text-primary-400" />
-          <h2 className="text-xl font-bold text-dark-50">Configurações</h2>
-        </div>
-        
-        {hasChanges && (
-          <div className="flex space-x-2">
-            <button
-              onClick={resetToDefaults}
-              className="btn-secondary flex items-center space-x-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              <span>Resetar</span>
-            </button>
-            <button
-              onClick={saveSettings}
-              disabled={isLoading}
-              className="btn-primary flex items-center space-x-2"
-            >
-              <Save className="h-4 w-4" />
-              <span>{isLoading ? 'Salvando...' : 'Salvar'}</span>
-            </button>
-          </div>
-        )}
-      </div>
+    <PageLayout
+      title="Configurações"
+      titleIcon={<SettingsIcon className="h-6 w-6 text-primary" />}
+      actions={hasChanges && (
+        <>
+          <Button
+            onClick={resetToDefaults}
+            variant="secondary"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Resetar</span>
+          </Button>
+          <Button
+            onClick={saveSettings}
+            disabled={isLoading}
+            loading={isLoading}
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <Save className="h-4 w-4" />
+            <span>{isLoading ? 'Salvando...' : 'Salvar'}</span>
+          </Button>
+        </>
+      )}
+    >
 
       <div className="grid gap-6">
         {/* Configurações de Tarifa */}
@@ -254,39 +257,36 @@ export default function Settings() {
             <h3 className="text-lg font-semibold text-dark-50">Notificações</h3>
           </div>
           
-          <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-200 font-medium">Alertar sobre consumo alto</span>
+              <Switch
                 checked={settings.notifications.highConsumption}
-                onChange={(e) => handleSettingChange('notifications.highConsumption', e.target.checked)}
-                className="mr-3 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-800"
+                onCheckedChange={(checked) => handleSettingChange('notifications.highConsumption', checked)}
+                aria-label="Alertar sobre consumo alto"
               />
-              <span className="text-dark-200">Alertar sobre consumo alto</span>
-            </label>
+            </div>
             
-            <label className="flex items-center">
-              <input
-                type="checkbox"
+            <div className="flex items-center justify-between">
+              <span className="text-slate-200 font-medium">Alertar quando meta mensal for ultrapassada</span>
+              <Switch
                 checked={settings.notifications.goalExceeded}
-                onChange={(e) => handleSettingChange('notifications.goalExceeded', e.target.checked)}
-                className="mr-3 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-800"
+                onCheckedChange={(checked) => handleSettingChange('notifications.goalExceeded', checked)}
+                aria-label="Alertar quando meta mensal for ultrapassada"
               />
-              <span className="text-dark-200">Alertar quando meta mensal for ultrapassada</span>
-            </label>
+            </div>
             
-            <label className="flex items-center">
-              <input
-                type="checkbox"
+            <div className="flex items-center justify-between">
+              <span className="text-slate-200 font-medium">Relatório diário de consumo</span>
+              <Switch
                 checked={settings.notifications.dailyReport}
-                onChange={(e) => handleSettingChange('notifications.dailyReport', e.target.checked)}
-                className="mr-3 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-800"
+                onCheckedChange={(checked) => handleSettingChange('notifications.dailyReport', checked)}
+                aria-label="Relatório diário de consumo"
               />
-              <span className="text-dark-200">Relatório diário de consumo</span>
-            </label>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

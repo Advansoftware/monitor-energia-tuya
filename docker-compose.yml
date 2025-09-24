@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "3012:3012"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/monitor_energia
@@ -25,7 +25,7 @@ services:
       context: ./microservice
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3013:3013"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/monitor_energia
@@ -33,7 +33,7 @@ services:
       - TUYA_ACCESS_SECRET=${TUYA_ACCESS_SECRET}
       - TUYA_ENDPOINT=${TUYA_ENDPOINT}
       - CRON_SCHEDULE=*/5 * * * *
-      - PORT=3002
+      - PORT=3013
     depends_on:
       - mongodb
     networks:

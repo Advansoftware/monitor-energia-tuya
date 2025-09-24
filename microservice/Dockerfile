@@ -21,7 +21,7 @@ RUN npm run build
 RUN npm prune --production
 
 # Expor porta
-EXPOSE 3002
+EXPOSE 3013
 
 # Comando de execução
 CMD ["npm", "run", "start:prod"]

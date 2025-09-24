@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Calendar, Calculator } from 'lucide-react';
 import { useModal } from './ModalProvider';
 import { Device, MonthlyStats } from '@/types';
+import { Button } from './ui/Button';
+import PageLayout from './PageLayout';
 
 interface AnalyticsProps {
   devices: Device[];
@@ -95,7 +97,10 @@ export default function Analytics({ devices }: AnalyticsProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <PageLayout
+      title="Analytics e Previsões"
+      titleIcon={<TrendingUp className="h-6 w-6 text-primary" />}
+    >
       {/* Configuração de Preço */}
       <div className="card">
         <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
@@ -170,12 +175,12 @@ export default function Analytics({ devices }: AnalyticsProps) {
         </div>
         
         <div className="mt-4 pt-4 border-t border-dark-700">
-          <button
+          <Button
             onClick={savePrediction}
-            className="btn-primary"
+            variant="default"
           >
             Salvar Previsão Atual
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -227,6 +232,6 @@ export default function Analytics({ devices }: AnalyticsProps) {
           })}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

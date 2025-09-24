@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { Search, Edit2, Trash2, Plus, Wifi, WifiOff } from 'lucide-react';
 import { useModal } from './ModalProvider';
 import { Device } from '@/types';
+import { Button } from './ui/Button';
+import PageLayout from './PageLayout';
+import DeviceEditModal from './DeviceEditModal';
 
 interface DeviceManagerProps {
   devices: Device[];
@@ -12,8 +15,7 @@ interface DeviceManagerProps {
 
 export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingDevice, setEditingDevice] = useState<string | null>(null);
-  const [newName, setNewName] = useState('');
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const { showAlert, showConfirm } = useModal();
 
@@ -23,11 +25,10 @@ export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManage
   );
 
   const startEdit = (device: Device) => {
-    setEditingDevice(device.deviceId);
-    setNewName(device.name);
+    setEditingDevice(device);
   };
 
-  const saveEdit = async (deviceId: string) => {
+  const saveEdit = async (deviceId: string, newName: string) => {
     if (!newName.trim()) return;
 
     try {
@@ -39,20 +40,20 @@ export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManage
 
       if (response.ok) {
         setEditingDevice(null);
-        setNewName('');
         onDevicesUpdate();
+        showAlert('Dispositivo renomeado com sucesso!', 'success');
       } else {
         showAlert('Erro ao renomear dispositivo', 'error');
       }
     } catch (error) {
       console.error('Erro ao renomear dispositivo:', error);
       showAlert('Erro ao renomear dispositivo', 'error');
+      throw error;
     }
   };
 
-  const cancelEdit = () => {
+  const closeEditModal = () => {
     setEditingDevice(null);
-    setNewName('');
   };
 
   const deleteDevice = async (deviceId: string, deviceName: string) => {
@@ -104,19 +105,21 @@ export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManage
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <h2 className="text-xl font-bold text-dark-50">Gerenciar Dispositivos</h2>
-        <button
+    <PageLayout
+      title="Gerenciar Dispositivos"
+      titleIcon={<Search className="h-6 w-6 text-primary" />}
+      actions={
+        <Button
           onClick={discoverDevices}
           disabled={isDiscovering}
-          className="btn-primary flex items-center space-x-2"
+          loading={isDiscovering}
+          className="flex items-center space-x-2"
         >
           <Plus className="h-4 w-4" />
           <span>{isDiscovering ? 'Descobrindo...' : 'Descobrir Novos'}</span>
-        </button>
-      </div>
+        </Button>
+      }
+    >
 
       {/* Search */}
       <div className="relative">
@@ -156,39 +159,11 @@ export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManage
 
                   {/* Device Info */}
                   <div className="flex-1">
-                    {editingDevice === device.deviceId ? (
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={newName}
-                          onChange={(e) => setNewName(e.target.value)}
-                          className="input-field flex-1"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') saveEdit(device.deviceId);
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => saveEdit(device.deviceId)}
-                          className="btn-primary px-3 py-1 text-sm"
-                        >
-                          Salvar
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="btn-secondary px-3 py-1 text-sm"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        <h3 className="font-semibold text-dark-50">{device.name}</h3>
-                        <p className="text-sm text-dark-400">ID: {device.deviceId}</p>
-                        <p className="text-sm text-dark-400">Categoria: {device.category}</p>
-                      </div>
-                    )}
+                    <div>
+                      <h3 className="font-semibold text-dark-50">{device.name}</h3>
+                      <p className="text-sm text-dark-400">ID: {device.deviceId}</p>
+                      <p className="text-sm text-dark-400">Categoria: {device.category}</p>
+                    </div>
                   </div>
 
                   {/* Device Stats */}
@@ -203,24 +178,22 @@ export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManage
                 </div>
 
                 {/* Actions */}
-                {editingDevice !== device.deviceId && (
-                  <div className="flex items-center space-x-2 ml-4">
-                    <button
-                      onClick={() => startEdit(device)}
-                      className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
-                      title="Renomear dispositivo"
-                    >
-                      <Edit2 className="h-4 w-4 text-dark-400 hover:text-dark-100" />
-                    </button>
-                    <button
-                      onClick={() => deleteDevice(device.deviceId, device.name)}
-                      className="p-2 hover:bg-red-600/20 rounded-lg transition-colors"
-                      title="Remover dispositivo"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex items-center space-x-2 ml-4">
+                  <button
+                    onClick={() => startEdit(device)}
+                    className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
+                    title="Editar dispositivo"
+                  >
+                    <Edit2 className="h-4 w-4 text-dark-400 hover:text-dark-100" />
+                  </button>
+                  <button
+                    onClick={() => deleteDevice(device.deviceId, device.name)}
+                    className="p-2 hover:bg-red-600/20 rounded-lg transition-colors"
+                    title="Remover dispositivo"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
+                  </button>
+                </div>
               </div>
 
               {/* Mobile Stats */}
@@ -265,6 +238,14 @@ export default function DeviceManager({ devices, onDevicesUpdate }: DeviceManage
           </div>
         </div>
       )}
-    </div>
+
+      {/* Device Edit Modal */}
+      <DeviceEditModal
+        device={editingDevice}
+        isOpen={!!editingDevice}
+        onClose={closeEditModal}
+        onSave={saveEdit}
+      />
+    </PageLayout>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bell, X, AlertTriangle, TrendingUp, Target, Zap } from 'lucide-react';
 import { useModal } from './ModalProvider';
 import { Device, Settings, Notification } from '@/types';
+import { Button } from './ui/Button';
 
 interface NotificationSystemProps {
   devices: Device[];
@@ -227,36 +228,43 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
 
       {/* Notification Panel */}
       {showPanel && (
-        <div className="absolute right-0 top-12 w-80 max-h-96 notification-popover z-50 overflow-hidden md:w-96">
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h3 className="font-semibold text-foreground heading-3">Notificações</h3>
-            <div className="flex items-center space-x-2">
-              {unreadCount > 0 && (
-                <button
-                  onClick={markAllAsRead}
-                  className="text-xs text-primary hover:text-primary/80 transition-colors"
-                >
-                  Marcar todas como lidas
-                </button>
-              )}
-              {notifications.length > 0 && (
-                <button
-                  onClick={clearAll}
-                  className="text-xs text-destructive hover:text-destructive/80 transition-colors"
-                >
-                  Limpar todas
-                </button>
-              )}
+        <div className="absolute right-0 top-12 w-80 max-w-[calc(100vw-2rem)] notification-popover z-50 md:w-96">
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground heading-3">Notificações</h3>
               <button
                 onClick={() => setShowPanel(false)}
-                className="p-1 hover:bg-accent/50 rounded transition-colors"
+                className="p-1 hover:bg-accent/50 rounded transition-colors touch-target"
               >
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
+            
+            {(unreadCount > 0 || notifications.length > 0) && (
+              <div className="flex flex-wrap gap-2">
+                {unreadCount > 0 && (
+                  <Button
+                    onClick={markAllAsRead}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Marcar todas como lidas
+                  </Button>
+                )}
+                {notifications.length > 0 && (
+                  <Button
+                    onClick={clearAll}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    Limpar todas
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto scrollbar-thin">
             {notifications.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">
                 <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />

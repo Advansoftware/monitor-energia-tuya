@@ -108,7 +108,7 @@ export default function Home() {
         <MobileHeader devices={devices} settings={settings || undefined} />
         
         {/* Main Content with padding for header and bottom nav */}
-        <main className="pt-[calc(64px+env(safe-area-inset-top))] pb-[calc(72px+env(safe-area-inset-bottom))] px-4 space-y-6">
+        <main className="pt-[calc(64px+env(safe-area-inset-top)+1.5rem)] pb-[calc(72px+env(safe-area-inset-bottom))] px-4 space-y-6">
           {/* Error Message */}
           {error && (
             <div className="mobile-card border border-red-500/30">

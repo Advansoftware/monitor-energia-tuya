@@ -41,7 +41,7 @@ export interface Settings {
 export interface Notification {
   _id?: string;
   id: string;
-  type: 'high-consumption' | 'goal-exceeded' | 'device-offline' | 'energy-saving';
+  type: 'high-consumption' | 'goal-exceeded' | 'device-offline' | 'energy-saving' | 'energy-goal' | 'prediction';
   title: string;
   message: string;
   timestamp: Date | string;
