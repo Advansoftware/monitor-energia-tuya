@@ -8,7 +8,7 @@ export async function connectToDatabase() {
     return { client: cachedClient, db: cachedDb };
   }
 
-  const uri = process.env.MONGODB_URI || 'mongodb://192.168.3.13:27017/energia_monitor';
+  const uri = process.env.MONGODB_URI || 'mongodb://mongodb:27017/monitor_energia';
 
   if (!uri) {
     throw new Error('MONGODB_URI não definida no arquivo de ambiente');

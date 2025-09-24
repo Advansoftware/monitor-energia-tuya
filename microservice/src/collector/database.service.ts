@@ -13,7 +13,7 @@ export class DatabaseService {
 
   private async connectToDatabase() {
     try {
-      const uri = process.env.MONGODB_URI || 'mongodb://192.168.3.13:27017/monitor_energia';
+      const uri = process.env.MONGODB_URI || 'mongodb://mongodb:27017/monitor_energia';
       this.client = new MongoClient(uri);
       await this.client.connect();
       this.db = this.client.db('monitor_energia');
