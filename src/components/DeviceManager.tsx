@@ -3,18 +3,7 @@
 import { useState } from 'react';
 import { Search, Edit2, Trash2, Plus, Wifi, WifiOff } from 'lucide-react';
 import { useModal } from './ModalProvider';
-
-interface Device {
-  deviceId: string;
-  name: string;
-  category: string;
-  online: boolean;
-  power: number;
-  voltage: number;
-  current: number;
-  totalEnergy: number;
-  lastUpdate: Date;
-}
+import { Device } from '@/types';
 
 interface DeviceManagerProps {
   devices: Device[];

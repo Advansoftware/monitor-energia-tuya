@@ -3,26 +3,41 @@
 import { useState, useEffect } from 'react';
 import { Download, X, Smartphone } from 'lucide-react';
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export default function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isMinimal, setIsMinimal] = useState(true);
 
   useEffect(() => {
-    const handler = (e: any) => {
+    const handler = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      setDeferredPrompt(e);
-      setShowPrompt(true);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      
+      // Show minimal version initially
+      const dismissed = localStorage.getItem('pwa-prompt-dismissed');
+      if (!dismissed) {
+        setShowPrompt(true);
+      }
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setShowPrompt(false);
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler as EventListener);
   }, []);
 
   const handleInstall = async () => {
@@ -43,57 +58,63 @@ export default function PWAInstallPrompt() {
     localStorage.setItem('pwa-prompt-dismissed', 'true');
   };
 
-  // Don't show if user already dismissed
-  useEffect(() => {
-    const dismissed = localStorage.getItem('pwa-prompt-dismissed');
-    if (dismissed) {
-      setShowPrompt(false);
-    }
-  }, []);
-
   if (!showPrompt) return null;
 
+  // Minimal version - just an icon button
+  if (isMinimal) {
+    return (
+      <button
+        onClick={() => setIsMinimal(false)}
+        className="touch-target p-2 rounded-lg hover:bg-accent/50 transition-colors"
+        title="Instalar como app"
+      >
+        <Download className="h-4 w-4 text-muted-foreground" />
+      </button>
+    );
+  }
+
+  // Expanded version
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up">
-      <div className="glass-dark border border-white/20 rounded-2xl p-4 shadow-2xl">
-        <div className="flex items-start space-x-4">
+    <div className="fixed bottom-20 left-4 right-4 z-50 animate-slide-up md:bottom-4 md:left-auto md:right-4 md:w-80">
+      <div className="mobile-card border border-border/50 shadow-xl">
+        <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
-            <div className="bg-gradient-to-r from-primary-500 to-accent-500 p-3 rounded-xl">
-              <Smartphone className="h-6 w-6 text-white" />
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Smartphone className="h-5 w-5 text-primary" />
             </div>
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-slate-100 mb-1">
+            <h3 className="text-sm font-semibold text-foreground mb-1">
               Instalar App
             </h3>
-            <p className="text-slate-300 text-sm mb-4">
-              Adicione o Monitor de Energia à sua tela inicial para acesso rápido e experiência nativa.
+            <p className="text-xs text-muted-foreground mb-3">
+              Acesso rápido e experiência nativa.
             </p>
             
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={handleInstall}
-                className="btn-primary flex items-center space-x-2 text-sm"
+                className="btn-primary btn-sm flex items-center space-x-1"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-3 w-3" />
                 <span>Instalar</span>
               </button>
               
               <button
                 onClick={handleDismiss}
-                className="text-slate-400 hover:text-slate-200 text-sm transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                Agora não
+                Dispensar
               </button>
             </div>
           </div>
           
           <button
-            onClick={handleDismiss}
-            className="flex-shrink-0 p-1 hover:bg-white/10 rounded-lg transition-colors"
+            onClick={() => setIsMinimal(true)}
+            className="flex-shrink-0 p-1 hover:bg-accent/50 rounded transition-colors"
           >
-            <X className="h-5 w-5 text-slate-400" />
+            <X className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
       </div>

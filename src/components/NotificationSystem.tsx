@@ -3,34 +3,40 @@
 import { useState, useEffect } from 'react';
 import { Bell, X, AlertTriangle, TrendingUp, Target, Zap } from 'lucide-react';
 import { useModal } from './ModalProvider';
-
-interface Notification {
-  id: string;
-  type: 'high-consumption' | 'goal-exceeded' | 'device-offline' | 'energy-saving';
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  deviceId?: string;
-  value?: number;
-}
+import { Device, Settings, Notification } from '@/types';
 
 interface NotificationSystemProps {
-  devices: any[];
-  settings?: any;
+  devices: Device[];
+  settings?: Settings;
 }
 
 export default function NotificationSystem({ devices, settings }: NotificationSystemProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPanel, setShowPanel] = useState(false);
-  const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const { showAlert } = useModal();
 
   useEffect(() => {
+    loadNotifications();
     checkForNotifications();
     const interval = setInterval(checkForNotifications, 60000); // Check every minute
     return () => clearInterval(interval);
   }, [devices, settings]);
+
+  const loadNotifications = async () => {
+    try {
+      const response = await fetch('/api/notifications');
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.map((notif: any) => ({
+          ...notif,
+          id: notif._id,
+          timestamp: new Date(notif.createdAt || notif.timestamp)
+        })));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    }
+  };
 
   const checkForNotifications = async () => {
     const newNotifications: Notification[] = [];
@@ -118,6 +124,17 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
     }
 
     if (newNotifications.length > 0) {
+      // Save new notifications to database
+      try {
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notifications: newNotifications })
+        });
+      } catch (error) {
+        console.error('Erro ao salvar notificações:', error);
+      }
+
       setNotifications(prev => [...newNotifications, ...prev]);
       
       // Show immediate alert for critical notifications
@@ -127,18 +144,44 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
         }
       });
     }
-
-    setLastCheck(now);
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      const notification = notifications.find(n => n.id === id);
+      if (notification && notification._id) {
+        await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notificationId: notification._id })
+        });
+      }
+      
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, read: true } : n)
+      );
+    } catch (error) {
+      console.error('Erro ao marcar notificação como lida:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read && n._id);
+      await Promise.all(
+        unreadNotifications.map(notification =>
+          fetch('/api/notifications', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notificationId: notification._id })
+          })
+        )
+      );
+      
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Erro ao marcar todas as notificações como lidas:', error);
+    }
   };
 
   const deleteNotification = (id: string) => {
@@ -171,12 +214,12 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
       {/* Notification Bell */}
       <button
         onClick={() => setShowPanel(!showPanel)}
-        className="relative p-2 rounded-lg hover:bg-dark-700 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-accent/50 transition-colors"
         title="Notificações"
       >
-        <Bell className="h-5 w-5 text-dark-400" />
+        <Bell className="h-5 w-5 text-muted-foreground" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -184,14 +227,14 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
 
       {/* Notification Panel */}
       {showPanel && (
-        <div className="absolute right-0 top-12 w-96 max-h-96 bg-dark-800 border border-dark-600 rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="p-4 border-b border-dark-600 flex items-center justify-between">
-            <h3 className="font-semibold text-dark-50">Notificações</h3>
+        <div className="absolute right-0 top-12 w-80 max-h-96 notification-popover z-50 overflow-hidden md:w-96">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h3 className="font-semibold text-foreground heading-3">Notificações</h3>
             <div className="flex items-center space-x-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-xs text-primary-400 hover:text-primary-300"
+                  className="text-xs text-primary hover:text-primary/80 transition-colors"
                 >
                   Marcar todas como lidas
                 </button>
@@ -199,59 +242,59 @@ export default function NotificationSystem({ devices, settings }: NotificationSy
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="text-xs text-red-400 hover:text-red-300"
+                  className="text-xs text-destructive hover:text-destructive/80 transition-colors"
                 >
                   Limpar todas
                 </button>
               )}
               <button
                 onClick={() => setShowPanel(false)}
-                className="p-1 hover:bg-dark-700 rounded"
+                className="p-1 hover:bg-accent/50 rounded transition-colors"
               >
-                <X className="h-4 w-4 text-dark-400" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-dark-400">
+              <div className="p-4 text-center text-muted-foreground">
                 <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Nenhuma notificação</p>
               </div>
             ) : (
-              <div className="divide-y divide-dark-600">
+              <div className="divide-y divide-border">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-dark-700 transition-colors ${
-                      !notification.read ? 'bg-dark-750' : ''
+                    className={`notification-item group touch-target ${
+                      !notification.read ? 'unread' : ''
                     }`}
                   >
                     <div className="flex items-start space-x-3">
                       {getIcon(notification.type)}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium text-dark-50">
+                          <h4 className="text-sm font-medium text-foreground">
                             {notification.title}
                           </h4>
                           <button
                             onClick={() => deleteNotification(notification.id)}
-                            className="p-1 hover:bg-dark-600 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1 hover:bg-accent/50 rounded opacity-0 group-hover:opacity-100 transition-all"
                           >
-                            <X className="h-3 w-3 text-dark-400" />
+                            <X className="h-3 w-3 text-muted-foreground" />
                           </button>
                         </div>
-                        <p className="text-xs text-dark-300 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-dark-500 mt-2">
-                          {notification.timestamp.toLocaleString()}
+                        <p className="text-xs text-muted-foreground/60 mt-2">
+                          {notification.timestamp.toLocaleString('pt-BR')}
                         </p>
                         {!notification.read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="text-xs text-primary-400 hover:text-primary-300 mt-1"
+                            className="text-xs text-primary hover:text-primary/80 mt-2 py-1 px-2 bg-primary/10 rounded transition-colors touch-target"
                           >
                             Marcar como lida
                           </button>

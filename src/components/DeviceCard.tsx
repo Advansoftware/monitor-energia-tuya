@@ -1,26 +1,16 @@
 import { Activity, Zap, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Device {
-  deviceId: string;
-  name: string;
-  category: string;
-  online: boolean;
-  power: number;
-  voltage: number;
-  current: number;
-  totalEnergy: number;
-  lastUpdate: Date;
-}
+import { Device } from '@/types';
 
 interface DeviceCardProps {
   device: Device;
 }
 
 export default function DeviceCard({ device }: DeviceCardProps) {
-  const formatLastUpdate = (date: Date) => {
+  const formatLastUpdate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
     const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
+    const diff = now.getTime() - dateObj.getTime();
     const minutes = Math.floor(diff / (1000 * 60));
     
     if (minutes < 1) return 'agora';
@@ -31,8 +21,23 @@ export default function DeviceCard({ device }: DeviceCardProps) {
     return `${days}d atrás`;
   };
 
+  // Calculate daily consumption (estimation based on current power)
+  const calculateDailyConsumption = () => {
+    if (!device.online || device.power === 0) return 0;
+    // Estimate daily consumption: current power * 24 hours / 1000 (to get kWh)
+    return (device.power * 24) / 1000;
+  };
+
+  // Calculate cost estimation (assuming R$ 0.65 per kWh)
+  const calculateDailyCost = () => {
+    return calculateDailyConsumption() * 0.65;
+  };
+
+  const dailyConsumption = calculateDailyConsumption();
+  const dailyCost = calculateDailyCost();
+
   return (
-    <div className="card space-y-4">
+    <div className="mobile-card space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -46,8 +51,8 @@ export default function DeviceCard({ device }: DeviceCardProps) {
             )} />
           </div>
           <div>
-            <h3 className="font-semibold text-dark-50">{device.name}</h3>
-            <p className="text-sm text-dark-400">{device.category}</p>
+            <h3 className="font-semibold text-foreground">{device.name}</h3>
+            <p className="text-sm text-muted-foreground">{device.category}</p>
           </div>
         </div>
         <div className="flex items-center space-x-1">
@@ -59,45 +64,71 @@ export default function DeviceCard({ device }: DeviceCardProps) {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
             <Zap className="h-4 w-4 text-yellow-400" />
-            <span className="text-sm text-dark-400">Potência</span>
+            <span className="text-sm text-muted-foreground">Potência</span>
           </div>
-          <p className="text-lg font-bold text-dark-50">{device.power.toFixed(1)} W</p>
+          <p className="text-lg font-bold text-foreground">{device.power.toFixed(1)} W</p>
         </div>
         <div className="space-y-1">
-          <span className="text-sm text-dark-400">Energia Total</span>
-          <p className="text-lg font-bold text-dark-50">{device.totalEnergy.toFixed(2)} kWh</p>
+          <span className="text-sm text-muted-foreground">Energia Total</span>
+          <p className="text-lg font-bold text-foreground">{device.totalEnergy.toFixed(2)} kWh</p>
+        </div>
+      </div>
+
+      {/* Real-time Consumption */}
+      <div className="border-t border-border pt-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-foreground">Consumo Estimado (Hoje)</span>
+          <div className="flex items-center space-x-1">
+            <Activity className="h-3 w-3 text-primary" />
+            <span className="text-xs text-muted-foreground">Em tempo real</span>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-accent/20 rounded-lg p-2">
+            <p className="text-xs text-muted-foreground">Consumo</p>
+            <p className="text-base font-semibold text-foreground">
+              {dailyConsumption.toFixed(2)} kWh
+            </p>
+          </div>
+          <div className="bg-accent/20 rounded-lg p-2">
+            <p className="text-xs text-muted-foreground">Custo</p>
+            <p className="text-base font-semibold text-green-400">
+              R$ {dailyCost.toFixed(2)}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Additional Info */}
-      <div className="grid grid-cols-2 gap-4 pt-2 border-t border-dark-700">
+      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
         <div className="space-y-1">
-          <span className="text-xs text-dark-500">Tensão</span>
-          <p className="text-sm font-medium text-dark-300">{device.voltage.toFixed(1)} V</p>
+          <span className="text-xs text-muted-foreground">Tensão</span>
+          <p className="text-sm font-medium text-foreground">{device.voltage.toFixed(1)} V</p>
         </div>
         <div className="space-y-1">
-          <span className="text-xs text-dark-500">Corrente</span>
-          <p className="text-sm font-medium text-dark-300">{device.current.toFixed(1)} mA</p>
+          <span className="text-xs text-muted-foreground">Corrente</span>
+          <p className="text-sm font-medium text-foreground">{device.current.toFixed(1)} mA</p>
         </div>
       </div>
 
       {/* Status Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-dark-700">
+      <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="flex items-center space-x-2">
           <div className={cn(
-            'h-2 w-2 rounded-full',
-            device.online ? 'bg-green-400' : 'bg-red-400'
+            'status-dot',
+            device.online ? 'status-online' : 'status-offline'
           )}></div>
-          <span className="text-xs text-dark-400">
+          <span className="text-xs text-muted-foreground">
             {device.online ? 'Online' : 'Offline'}
           </span>
         </div>
-        <span className="text-xs text-dark-500">
+        <span className="text-xs text-muted-foreground">
           {formatLastUpdate(device.lastUpdate)}
         </span>
       </div>

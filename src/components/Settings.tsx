@@ -42,7 +42,7 @@ export default function Settings() {
     }
   };
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (key: string, value: string | number | boolean) => {
     setSettings(prev => {
       const newSettings = { ...prev } as any;
       if (key.includes('.')) {

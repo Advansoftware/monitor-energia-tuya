@@ -2,17 +2,11 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useState, useEffect } from 'react';
+import { Device } from '@/types';
 
-interface Device {
-  deviceId: string;
-  name: string;
-  category: string;
-  online: boolean;
-  power: number;
-  voltage: number;
-  current: number;
-  totalEnergy: number;
-  lastUpdate: Date;
+interface ChartDataPoint {
+  time: string;
+  [key: string]: string | number;
 }
 
 interface EnergyChartProps {
@@ -20,7 +14,7 @@ interface EnergyChartProps {
 }
 
 export default function EnergyChart({ devices }: EnergyChartProps) {
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
 
   useEffect(() => {
@@ -33,7 +27,7 @@ export default function EnergyChart({ devices }: EnergyChartProps) {
         const time = new Date(now.getTime() - i * 60 * 60 * 1000);
         const hour = time.getHours();
         
-        const dataPoint: any = {
+        const dataPoint: ChartDataPoint = {
           time: `${hour.toString().padStart(2, '0')}:00`,
           timestamp: time.toISOString(),
         };
@@ -61,12 +55,21 @@ export default function EnergyChart({ devices }: EnergyChartProps) {
 
   const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: {
+    active?: boolean;
+    payload?: Array<{
+      value: number;
+      dataKey: string;
+      name: string;
+      color: string;
+    }>;
+    label?: string;
+  }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-dark-800 border border-dark-600 rounded-lg p-3 shadow-lg">
           <p className="text-dark-200 font-medium">{`Hora: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
               {`${entry.name}: ${entry.value.toFixed(1)} W`}
             </p>

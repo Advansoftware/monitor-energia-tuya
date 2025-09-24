@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Zap, TrendingUp, Settings as SettingsIcon, BarChart3, Cog, History as HistoryIcon } from 'lucide-react';
+import { Activity, Zap, TrendingUp } from 'lucide-react';
 import DeviceCard from '@/components/DeviceCard';
 import EnergyChart from '@/components/EnergyChart';
 import StatsCard from '@/components/StatsCard';
@@ -9,21 +9,11 @@ import Analytics from '@/components/Analytics';
 import DeviceManager from '@/components/DeviceManager';
 import History from '@/components/History';
 import Settings from '@/components/Settings';
-import NotificationSystem from '@/components/NotificationSystem';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { ModalProvider } from '@/components/ModalProvider';
-
-interface Device {
-  deviceId: string;
-  name: string;
-  category: string;
-  online: boolean;
-  power: number;
-  voltage: number;
-  current: number;
-  totalEnergy: number;
-  lastUpdate: Date;
-}
+import BottomNavigation from '@/components/BottomNavigation';
+import MobileHeader from '@/components/MobileHeader';
+import { Device, Settings as SettingsType } from '@/types';
 
 export default function Home() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -33,7 +23,7 @@ export default function Home() {
   const [totalEnergy, setTotalEnergy] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<SettingsType | null>(null);
 
   useEffect(() => {
     fetchDevices();
@@ -107,10 +97,32 @@ export default function Home() {
     );
   }
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   return (
     <ModalProvider>
-      <div className="min-h-screen text-slate-50">
-      <header className="glass-dark border-b border-white/10 px-4 py-4 backdrop-blur-xl sticky top-0 z-40">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-slate-50">
+        {/* Mobile Header */}
+        <MobileHeader devices={devices} settings={settings || undefined} />
+        
+        {/* Main Content with padding for header and bottom nav */}
+        <main className="pt-[calc(64px+env(safe-area-inset-top))] pb-[calc(72px+env(safe-area-inset-bottom))] px-4 space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="mobile-card border border-red-500/30">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></div>
+                </div>
+                <div>
+                  <h4 className="text-red-200 font-medium text-sm">Erro de Conexão</h4>
+                  <p className="text-red-300/80 text-sm mt-1">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="relative">
@@ -190,7 +202,7 @@ export default function Home() {
             >
               <SettingsIcon className="h-5 w-5" />
             </button>
-            <NotificationSystem devices={devices} settings={settings} />
+            <NotificationSystem devices={devices} settings={settings || undefined} />
           </div>
         </div>
       </header>

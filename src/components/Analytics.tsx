@@ -3,14 +3,15 @@
 import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Calendar, Calculator } from 'lucide-react';
 import { useModal } from './ModalProvider';
+import { Device, MonthlyStats } from '@/types';
 
 interface AnalyticsProps {
-  devices: any[];
+  devices: Device[];
 }
 
 export default function Analytics({ devices }: AnalyticsProps) {
   const [kwhPrice, setKwhPrice] = useState(0.65);
-  const [monthlyPredictions, setMonthlyPredictions] = useState<any[]>([]);
+  const [monthlyPredictions, setMonthlyPredictions] = useState<MonthlyStats[]>([]);
   const [currentMonth, setCurrentMonth] = useState({
     consumption: 0,
     cost: 0,

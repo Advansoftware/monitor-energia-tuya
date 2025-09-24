@@ -6,9 +6,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useModal } from './ModalProvider';
+import { Device, EnergyReading, MonthlyStats } from '@/types';
 
 interface HistoryProps {
-  devices: any[];
+  devices: Device[];
 }
 
 export default function History({ devices }: HistoryProps) {
@@ -65,7 +66,7 @@ export default function History({ devices }: HistoryProps) {
     }
   };
 
-  const processReadingsForChart = (readings: any[]) => {
+  const processReadingsForChart = (readings: EnergyReading[]) => {
     // Agrupar leituras por hora/dia dependendo do período
     const groupBy = selectedPeriod === '24h' ? 'hour' : 'day';
     const grouped = new Map();
