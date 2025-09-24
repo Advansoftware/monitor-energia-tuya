@@ -135,7 +135,7 @@ export default function Analytics({ devices }: AnalyticsProps) {
               <div>
                 <p className="text-sm text-dark-400">Consumo Previsto</p>
                 <p className="text-xl font-bold text-blue-400">
-                  {currentMonth.consumption.toFixed(1)} kWh
+                  {(currentMonth.consumption || 0).toFixed(1)} kWh
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-400" />
@@ -147,7 +147,7 @@ export default function Analytics({ devices }: AnalyticsProps) {
               <div>
                 <p className="text-sm text-dark-400">Custo Previsto</p>
                 <p className="text-xl font-bold text-green-400">
-                  R$ {currentMonth.cost.toFixed(2)}
+                  R$ {(currentMonth.cost || 0).toFixed(2)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-400" />
@@ -159,7 +159,7 @@ export default function Analytics({ devices }: AnalyticsProps) {
               <div>
                 <p className="text-sm text-dark-400">Economia Estimada</p>
                 <p className="text-xl font-bold text-yellow-400">
-                  R$ {(currentMonth.cost * 0.1).toFixed(2)}
+                  R$ {((currentMonth.cost || 0) * 0.1).toFixed(2)}
                 </p>
                 <p className="text-xs text-dark-500">vs. mês anterior</p>
               </div>
@@ -186,29 +186,29 @@ export default function Analytics({ devices }: AnalyticsProps) {
           {devices.map((device) => {
             const deviceConsumption = (device.power * 12 * 30) / 1000;
             const deviceCost = deviceConsumption * kwhPrice;
-            const percentage = (deviceConsumption / currentMonth.consumption) * 100;
+            const percentage = currentMonth.consumption > 0 ? (deviceConsumption / currentMonth.consumption) * 100 : 0;
             
             return (
               <div key={device.deviceId} className="bg-dark-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-dark-100">{device.name}</h4>
                   <span className="text-sm text-dark-400">
-                    {percentage.toFixed(1)}% do total
+                    {isNaN(percentage) || !isFinite(percentage) ? '0.0' : percentage.toFixed(1)}% do total
                   </span>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
                     <span className="text-dark-400">Potência:</span>
-                    <p className="font-medium text-dark-100">{device.power.toFixed(1)} W</p>
+                    <p className="font-medium text-dark-100">{(device.power || 0).toFixed(1)} W</p>
                   </div>
                   <div>
                     <span className="text-dark-400">Consumo/mês:</span>
-                    <p className="font-medium text-dark-100">{deviceConsumption.toFixed(1)} kWh</p>
+                    <p className="font-medium text-dark-100">{(deviceConsumption || 0).toFixed(1)} kWh</p>
                   </div>
                   <div>
                     <span className="text-dark-400">Custo/mês:</span>
-                    <p className="font-medium text-green-400">R$ {deviceCost.toFixed(2)}</p>
+                    <p className="font-medium text-green-400">R$ {(deviceCost || 0).toFixed(2)}</p>
                   </div>
                 </div>
                 
@@ -217,7 +217,7 @@ export default function Analytics({ devices }: AnalyticsProps) {
                   <div className="w-full bg-dark-600 rounded-full h-2">
                     <div
                       className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                      style={{ width: `${Math.min(isNaN(percentage) ? 0 : percentage, 100)}%` }}
                     ></div>
                   </div>
                 </div>

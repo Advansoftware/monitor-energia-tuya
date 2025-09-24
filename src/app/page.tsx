@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Zap, TrendingUp, Settings, BarChart3, Cog, History as HistoryIcon } from 'lucide-react';
+import { Activity, Zap, TrendingUp, Settings as SettingsIcon, BarChart3, Cog, History as HistoryIcon } from 'lucide-react';
 import DeviceCard from '@/components/DeviceCard';
 import EnergyChart from '@/components/EnergyChart';
 import StatsCard from '@/components/StatsCard';
 import Analytics from '@/components/Analytics';
 import DeviceManager from '@/components/DeviceManager';
 import History from '@/components/History';
+import Settings from '@/components/Settings';
 import { ModalProvider } from '@/components/ModalProvider';
 
 interface Device {
@@ -135,6 +136,15 @@ export default function Home() {
             >
               <HistoryIcon className="h-5 w-5" />
             </button>
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`p-2 rounded-lg transition-colors ${
+                activeTab === 'settings' ? 'bg-primary-600 text-white' : 'hover:bg-dark-700 text-dark-400'
+              }`}
+              title="Configurações"
+            >
+              <SettingsIcon className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </header>
@@ -253,6 +263,8 @@ export default function Home() {
         )}
 
         {activeTab === 'history' && <History devices={devices} />}
+
+        {activeTab === 'settings' && <Settings />}
       </main>
     </div>
     </ModalProvider>
