@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { tuyaService } from '@/lib/tuya';
-import { EnergyReading } from '@/types/database';
+import { EnergyReading } from '@/types';
 
 export async function POST() {
   try {

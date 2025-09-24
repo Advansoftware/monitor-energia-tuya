@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
 
     const result = await collection.insertMany(notificationsToSave);
 
-    return NextResponse.json({ 
-      success: true, 
-      insertedCount: result.insertedCount 
+    return NextResponse.json({
+      success: true,
+      insertedCount: result.insertedCount
     });
 
   } catch (error) {
@@ -59,11 +59,11 @@ export async function PATCH(request: NextRequest) {
 
     const result = await collection.updateOne(
       { _id: new ObjectId(notificationId) },
-      { 
-        $set: { 
-          read: true, 
-          readAt: new Date() 
-        } 
+      {
+        $set: {
+          read: true,
+          readAt: new Date()
+        }
       }
     );
 
@@ -74,9 +74,9 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Notificação marcada como lida' 
+    return NextResponse.json({
+      success: true,
+      message: 'Notificação marcada como lida'
     });
 
   } catch (error) {
@@ -101,7 +101,7 @@ export async function GET() {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const notifications = await collection
-      .find({ 
+      .find({
         read: { $ne: true },
         createdAt: { $gte: sevenDaysAgo }
       })

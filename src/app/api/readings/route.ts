@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { EnergyReading } from '@/types/database';
+import { EnergyReading } from '@/types';
 import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {

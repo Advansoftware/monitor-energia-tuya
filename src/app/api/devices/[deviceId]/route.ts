@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { Device } from '@/types/database';
+import { Device } from '@/types';
 
 export async function PUT(
   request: NextRequest,

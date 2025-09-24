@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { AppSettings } from '@/types/database';
+import { Settings } from '@/types';
 
 export async function GET() {
   try {
@@ -10,7 +10,7 @@ export async function GET() {
 
     if (!settings) {
       // Criar configurações padrão
-      const defaultSettings: Omit<AppSettings, '_id'> = {
+      const defaultSettings: Omit<Settings, '_id'> = {
         kwhPrice: 0.65, // Preço médio do kWh no Brasil
         currency: 'BRL',
         timezone: 'America/Sao_Paulo',

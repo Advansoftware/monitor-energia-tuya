@@ -1,6 +1,7 @@
 // Common interfaces for the energy monitoring application
 
 export interface Device {
+  _id?: string;
   deviceId: string;
   name: string;
   category: string;
@@ -10,6 +11,8 @@ export interface Device {
   current: number;
   totalEnergy: number;
   lastUpdate: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export interface EnergyReading {
@@ -20,6 +23,7 @@ export interface EnergyReading {
   voltage: number;
   current: number;
   totalEnergy: number;
+  createdAt?: Date | string;
 }
 
 export interface Settings {
@@ -30,6 +34,7 @@ export interface Settings {
   emailNotifications?: boolean;
   realTimeUpdates?: boolean;
   dataRetentionDays?: number;
+  kwhPrice?: number;
   updatedAt?: Date | string;
 }
 
@@ -65,6 +70,8 @@ export interface PredictionData {
   _id?: string;
   deviceId: string;
   date: Date | string;
+  month: number;
+  year: number;
   predictedConsumption: number;
   confidenceLevel: number;
   factors: {
@@ -72,4 +79,5 @@ export interface PredictionData {
     seasonal: number;
     trend: number;
   };
+  createdAt?: Date | string;
 }

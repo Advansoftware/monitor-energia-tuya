@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { MonthlyPrediction } from '@/types/database';
+import { PredictionData } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const predictedCost = predictedConsumption * kwhPrice;
 
-    const prediction: Omit<MonthlyPrediction, '_id'> = {
+    const prediction: Omit<PredictionData, '_id'> = {
       deviceId,
       year: Number(year),
       month: Number(month),
