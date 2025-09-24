@@ -9,6 +9,7 @@ import Analytics from '@/components/Analytics';
 import DeviceManager from '@/components/DeviceManager';
 import History from '@/components/History';
 import Settings from '@/components/Settings';
+import NotificationSystem from '@/components/NotificationSystem';
 import { ModalProvider } from '@/components/ModalProvider';
 
 interface Device {
@@ -31,9 +32,11 @@ export default function Home() {
   const [totalEnergy, setTotalEnergy] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
     fetchDevices();
+    fetchSettings();
     const interval = setInterval(fetchDevices, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -69,6 +72,18 @@ export default function Home() {
       console.error('Erro ao buscar dispositivos:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      if (data.success) {
+        setSettings(data.settings);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar configurações:', err);
     }
   };
 
@@ -145,6 +160,7 @@ export default function Home() {
             >
               <SettingsIcon className="h-5 w-5" />
             </button>
+            <NotificationSystem devices={devices} settings={settings} />
           </div>
         </div>
       </header>

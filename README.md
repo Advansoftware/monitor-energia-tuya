@@ -1,6 +1,46 @@
-# Monitor de Energia - Tuya Smart
+# Monitor de Energia Tuya
 
-Aplicação web para monitoramento de consumo de energia de dispositivos Tuya Smart, com design dark e foco mobile first.
+Sistema completo de monitoramento de energia para dispositivos Tuya com interface web responsiva e coleta automática de dados.
+
+## 🚀 Funcionalidades
+
+### Aplicação Principal (Next.js)
+- ✅ **Dashboard interativo** com visualização em tempo real
+- ✅ **Gráficos de consumo** usando Recharts
+- ✅ **Gerenciamento de dispositivos** Tuya
+- ✅ **Analytics avançados** com previsões de consumo
+- ✅ **Histórico detalhado** com exportação CSV
+- ✅ **Configurações personalizáveis** (tarifas, metas, limites)
+- ✅ **Sistema de modais** para melhor UX
+- ✅ **Sistema de notificações** para alertas inteligentes
+- ✅ **Design responsivo** mobile-first com tema dark
+- ✅ **Integração MongoDB** para persistência de dados
+
+### Microservice (NestJS)
+- ✅ **Coleta automática** via cron jobs (configurável)
+- ✅ **API Tuya integrada** para leitura de dispositivos
+- ✅ **Health checks** e monitoramento
+- ✅ **Logs estruturados** para debugging
+- ✅ **Endpoints REST** para controle manual
+
+## 🛠️ Tecnologias Utilizadas
+
+### Frontend & Backend
+- **Next.js 14** - Framework React com App Router
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS v4** - Estilização responsiva
+- **Recharts** - Gráficos interativos
+- **Lucide React** - Ícones modernos
+
+### Microservice
+- **NestJS** - Framework Node.js enterprise
+- **MongoDB** - Banco de dados NoSQL
+- **Axios** - Cliente HTTP
+- **node-cron** - Agendamento de tarefas
+
+### DevOps
+- **Docker & Docker Compose** - Containerização
+- **MongoDB** - Banco de dados em container
 
 ## 🚀 Funcionalidades
 

@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Aplicação Next.js principal
+  monitor-energia-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/monitor_energia
+      - TUYA_ACCESS_ID=${TUYA_ACCESS_ID}
+      - TUYA_ACCESS_SECRET=${TUYA_ACCESS_SECRET}
+      - TUYA_ENDPOINT=${TUYA_ENDPOINT}
+    depends_on:
+      - mongodb
+    networks:
+      - monitor-energia-network
+
+  # Microservice de coleta
+  monitor-energia-microservice:
+    build:
+      context: ./microservice
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/monitor_energia
+      - TUYA_ACCESS_ID=${TUYA_ACCESS_ID}
+      - TUYA_ACCESS_SECRET=${TUYA_ACCESS_SECRET}
+      - TUYA_ENDPOINT=${TUYA_ENDPOINT}
+      - CRON_SCHEDULE=*/5 * * * *
+      - PORT=3002
+    depends_on:
+      - mongodb
+    networks:
+      - monitor-energia-network
+
+  # MongoDB
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - monitor-energia-network
+
+networks:
+  monitor-energia-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
